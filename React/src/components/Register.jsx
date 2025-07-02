@@ -14,13 +14,14 @@ export default function Register() {
     setMessage("");
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/login/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+
+        const response = await fetch("https://fitness-backend.onrender.com/api/auth/Register/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
 
 
       if (response.ok) {
