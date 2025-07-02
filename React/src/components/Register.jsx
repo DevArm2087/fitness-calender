@@ -14,16 +14,11 @@ export default function Register() {
     setMessage("");
 
     try {
-
-
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login/`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-
-
-
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
       if (response.ok) {
         setMessage("ثبت‌نام با موفقیت انجام شد. اکنون وارد شوید.");
@@ -132,4 +127,3 @@ export default function Register() {
     </div>
   );
 }
-    

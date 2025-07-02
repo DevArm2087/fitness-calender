@@ -1,27 +1,25 @@
 # accounts/serializers.py
-
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)  # فیلد تکرار پسورد
+    password2 = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'password2')
+        fields = ['username', 'password', 'password2']
+        extra_kwargs = {'password': {'write_only': True}}
 
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "پسوردها مطابقت ندارند."})
-        return attrs
+    def validate(self, data):
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError("رمز عبور و تکرار آن برابر نیستند.")
+        validate_password(data['password'])
+        return data
 
     def create(self, validated_data):
-        user = User.objects.create(
+        user = User.objects.create_user(
             username=validated_data['username'],
-            email=validated_data['email'],
+            password=validated_data['password']
         )
-        user.set_password(validated_data['password'])
-        user.save()
         return user
