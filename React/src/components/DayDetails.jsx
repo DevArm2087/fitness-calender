@@ -53,11 +53,74 @@ const exerciseOptions = [
   { id: 20, name: "بالا آوردن پا در حالت خوابیده" }
 ];
 
+const persianWeekdays = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه"];
+
+function formatDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}/${m}/${d}`;
+}
+
+function MultiDateSelector({ baseDate, selectedDates, setSelectedDates }) {
+  const [dateList, setDateList] = useState([]);
+
+  useEffect(() => {
+    const list = [];
+    for (let offset = 0; offset < 14; offset++) {
+      const date = new Date(baseDate);
+      date.setDate(date.getDate() + offset);
+      list.push(date);
+    }
+    setDateList(list);
+  }, [baseDate]);
+
+  const toggleDate = (dateStr) => {
+    if (selectedDates.includes(dateStr)) {
+      setSelectedDates(selectedDates.filter((d) => d !== dateStr));
+    } else {
+      setSelectedDates([...selectedDates, dateStr]);
+    }
+  };
+
+  return (
+    <div className="p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 max-h-56 overflow-y-auto">
+      <h4 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">تاریخ‌های آینده را انتخاب کنید</h4>
+      <div className="grid grid-cols-2 gap-3">
+        {dateList.map((date) => {
+          const weekday = persianWeekdays[date.getDay()];
+          const dateStr = formatDate(date);
+          const isChecked = selectedDates.includes(dateStr);
+
+          return (
+            <label
+              key={dateStr}
+              className={`flex items-center gap-3 cursor-pointer rounded-md px-3 py-2
+                ${isChecked ? "bg-indigo-600 text-white shadow-md" : "hover:bg-indigo-100 dark:hover:bg-indigo-700"}`
+              }
+            >
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={() => toggleDate(dateStr)}
+                className="cursor-pointer w-5 h-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <div className="select-none">
+                <div className="font-semibold">{dateStr}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{weekday}</div>
+              </div>
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function DayDetails() {
   const { year, month, day } = useParams();
   const navigate = useNavigate();
 
-  // تابع کمکی برای تبدیل به رشته 2 رقمی با صفر پرکن
   const pad2 = (num) => num.toString().padStart(2, "0");
 
   const [foodSearch, setFoodSearch] = useState("");
@@ -78,10 +141,8 @@ function DayDetails() {
 
   const [message, setMessage] = useState(null);
 
-  const searchParams = new URLSearchParams(window.location.search);
-  const editId = searchParams.get("editId");
+  const [selectedExerciseDates, setSelectedExerciseDates] = useState([]);
 
-  // کلیدهای localStorage با فرمت دو رقمی ماه و روز
   const localStorageFoodKey = `foodPlan_${year}_${pad2(month)}_${pad2(day)}`;
   const localStorageExerciseKey = `exercisePlan_${year}_${pad2(month)}_${pad2(day)}`;
 
@@ -93,32 +154,10 @@ function DayDetails() {
     if (savedExercise) setExercisePlan(JSON.parse(savedExercise));
   }, [localStorageFoodKey, localStorageExerciseKey]);
 
-  useEffect(() => {
-    if (!editId) return;
-
-    const foodItem = foodPlan.find(f => f.id.toString() === editId);
-    if (foodItem) {
-      setSelectedFoodId(foodItem.foodId);
-      setUnitType(foodItem.unitType);
-      setQuantity(foodItem.quantity);
-      setCaloriesPerUnit(foodItem.caloriesPerUnit);
-      setExerciseSets("");
-      setExerciseWeight("");
-      setExerciseCount("");
-      return;
-    }
-    const exerciseItem = exercisePlan.find(e => e.id.toString() === editId);
-    if (exerciseItem) {
-      setSelectedExerciseId(exerciseItem.exerciseId);
-      setExerciseSets(exerciseItem.sets);
-      setExerciseWeight(exerciseItem.weightKg);
-      setExerciseCount(exerciseItem.count || "");
-      setSelectedFoodId(foodOptions[0].id);
-      setUnitType("weight");
-      setQuantity(100);
-      setCaloriesPerUnit("");
-    }
-  }, [editId, foodPlan, exercisePlan]);
+  const showSuccessMessage = (text) => {
+    setMessage(text);
+    setTimeout(() => setMessage(null), 3000);
+  };
 
   const clearFormFood = () => {
     setSelectedFoodId(foodOptions[0].id);
@@ -132,16 +171,9 @@ function DayDetails() {
     setExerciseSets("");
     setExerciseWeight("");
     setExerciseCount("");
+    setSelectedExerciseDates([]);
   };
 
-  const showSuccessMessage = (text) => {
-    setMessage(text);
-    setTimeout(() => {
-      setMessage(null);
-    }, 3000);
-  };
-
-  // محاسبه کالری کل
   const totalCalories = () => {
     if (!caloriesPerUnit || !quantity) return 0;
     if (unitType === "weight") {
@@ -163,37 +195,22 @@ function DayDetails() {
 
     const foodName = foodOptions.find(f => f.id === selectedFoodId).name;
 
-    let updatedFoodPlan;
-    if (editId && foodPlan.some(f => f.id.toString() === editId)) {
-      updatedFoodPlan = foodPlan.map(f =>
-        f.id.toString() === editId
-          ? { ...f, foodId: selectedFoodId, name: foodName, quantity: Number(quantity), unitType, caloriesPerUnit: Number(caloriesPerUnit) }
-          : f
-      );
-    } else {
-      updatedFoodPlan = [
-        ...foodPlan,
-        {
-          id: Date.now(),
-          foodId: selectedFoodId,
-          name: foodName,
-          quantity: Number(quantity),
-          unitType,
-          caloriesPerUnit: Number(caloriesPerUnit),
-        },
-      ];
-    }
+    const updatedFoodPlan = [
+      ...foodPlan,
+      {
+        id: Date.now(),
+        foodId: selectedFoodId,
+        name: foodName,
+        quantity: Number(quantity),
+        unitType,
+        caloriesPerUnit: Number(caloriesPerUnit),
+      },
+    ];
+
     setFoodPlan(updatedFoodPlan);
     localStorage.setItem(localStorageFoodKey, JSON.stringify(updatedFoodPlan));
 
     clearFormFood();
-
-    if (editId) {
-      const url = new URL(window.location);
-      url.searchParams.delete("editId");
-      window.history.replaceState({}, "", url.toString());
-    }
-
     showSuccessMessage("برنامه غذایی با موفقیت ثبت شد");
   };
 
@@ -213,46 +230,42 @@ function DayDetails() {
 
     const exerciseName = exerciseOptions.find(e => e.id === selectedExerciseId).name;
 
-    let updatedExercisePlan;
-    if (editId && exercisePlan.some(e => e.id.toString() === editId)) {
-      updatedExercisePlan = exercisePlan.map(e =>
-        e.id.toString() === editId
-          ? {
-              ...e,
-              exerciseId: selectedExerciseId,
-              name: exerciseName,
-              sets: Number(exerciseSets),
-              weightKg: Number(exerciseWeight),
-              count: Number(exerciseCount),
-            }
-          : e
-      );
-    } else {
-      updatedExercisePlan = [
-        ...exercisePlan,
-        {
-          id: Date.now(),
-          exerciseId: selectedExerciseId,
-          name: exerciseName,
-          sets: Number(exerciseSets),
-          weightKg: Number(exerciseWeight),
-          count: Number(exerciseCount),
-        },
-      ];
-    }
+    const newExerciseEntry = {
+      id: Date.now(),
+      exerciseId: selectedExerciseId,
+      name: exerciseName,
+      sets: Number(exerciseSets),
+      weightKg: Number(exerciseWeight),
+      count: Number(exerciseCount),
+    };
+
+    // ذخیره تمرین در تاریخ جاری
+    const updatedExercisePlan = [...exercisePlan, newExerciseEntry];
     setExercisePlan(updatedExercisePlan);
     localStorage.setItem(localStorageExerciseKey, JSON.stringify(updatedExercisePlan));
 
+    // ذخیره برای تاریخ‌های انتخاب شده آینده
+    selectedExerciseDates.forEach((dateStr) => {
+      const key = `exercisePlan_${dateStr.replace(/\//g, "_")}`;
+      let existing = [];
+      try {
+        const json = localStorage.getItem(key);
+        if (json) existing = JSON.parse(json);
+      } catch { existing = []; }
+
+      existing.push({
+        ...newExerciseEntry,
+        id: Date.now() + Math.floor(Math.random() * 1000),
+      });
+
+      localStorage.setItem(key, JSON.stringify(existing));
+    });
+
     clearFormExercise();
-
-    if (editId) {
-      const url = new URL(window.location);
-      url.searchParams.delete("editId");
-      window.history.replaceState({}, "", url.toString());
-    }
-
     showSuccessMessage("برنامه تمرینی با موفقیت ثبت شد");
   };
+
+  const baseDate = new Date(Number(year), Number(month) - 1, Number(day));
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg font-vazir min-h-screen">
@@ -269,7 +282,7 @@ function DayDetails() {
           >
             برنامه‌ها
           </button>
-          
+
           <button
             onClick={() => navigate("/")}
             className="bg-gray-600 hover:bg-gray-700 text-white py-1 px-3 rounded"
@@ -289,9 +302,7 @@ function DayDetails() {
       {/* فرم ثبت غذا */}
       <section className="mb-10">
         <h3 className="text-xl font-semibold mb-4 text-indigo-700 dark:text-indigo-300">
-          {editId && foodPlan.some(f => f.id.toString() === editId)
-            ? "ویرایش برنامه غذایی"
-            : "افزودن برنامه غذایی"}
+          افزودن برنامه غذایی
         </h3>
 
         <input
@@ -380,16 +391,14 @@ function DayDetails() {
           onClick={saveFood}
           className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded transition"
         >
-          {editId && foodPlan.some(f => f.id.toString() === editId) ? "ویرایش" : "افزودن"}
+          افزودن
         </button>
       </section>
 
       {/* فرم ثبت تمرین */}
       <section>
         <h3 className="text-xl font-semibold mb-4 text-green-700 dark:text-green-300">
-          {editId && exercisePlan.some(e => e.id.toString() === editId)
-            ? "ویرایش برنامه تمرینی"
-            : "افزودن برنامه تمرینی"}
+          افزودن برنامه تمرینی
         </h3>
 
         <input
@@ -441,11 +450,17 @@ function DayDetails() {
           className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
         />
 
+        <MultiDateSelector
+          baseDate={baseDate}
+          selectedDates={selectedExerciseDates}
+          setSelectedDates={setSelectedExerciseDates}
+        />
+
         <button
           onClick={saveExercise}
           className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded transition"
         >
-          {editId && exercisePlan.some(e => e.id.toString() === editId) ? "ویرایش" : "افزودن"}
+          افزودن
         </button>
       </section>
     </div>
