@@ -96,8 +96,7 @@ function MultiDateSelector({ baseDate, selectedDates, setSelectedDates }) {
             <label
               key={dateStr}
               className={`flex items-center gap-3 cursor-pointer rounded-md px-3 py-2
-                ${isChecked ? "bg-indigo-600 text-white shadow-md" : "hover:bg-indigo-100 dark:hover:bg-indigo-700"}`
-              }
+                ${isChecked ? "bg-indigo-600 text-white shadow-md" : "hover:bg-indigo-100 dark:hover:bg-indigo-700"}`}
             >
               <input
                 type="checkbox"
@@ -130,6 +129,7 @@ function DayDetails() {
   const [unitType, setUnitType] = useState("weight");
   const [quantity, setQuantity] = useState(100);
   const [caloriesPerUnit, setCaloriesPerUnit] = useState("");
+  const [proteinPerUnit, setProteinPerUnit] = useState(""); // اضافه شده
 
   const [selectedExerciseId, setSelectedExerciseId] = useState(exerciseOptions[0].id);
   const [exerciseSets, setExerciseSets] = useState("");
@@ -164,6 +164,7 @@ function DayDetails() {
     setUnitType("weight");
     setQuantity(100);
     setCaloriesPerUnit("");
+    setProteinPerUnit(""); // اضافه شده
   };
 
   const clearFormExercise = () => {
@@ -183,9 +184,22 @@ function DayDetails() {
     }
   };
 
+  const totalProtein = () => {
+    if (!proteinPerUnit || !quantity) return 0;
+    if (unitType === "weight") {
+      return ((Number(proteinPerUnit) * Number(quantity)) / 100).toFixed(2);
+    } else {
+      return (Number(proteinPerUnit) * Number(quantity)).toFixed(2);
+    }
+  };
+
   const saveFood = () => {
     if (!caloriesPerUnit || isNaN(caloriesPerUnit) || caloriesPerUnit <= 0) {
       alert("لطفا کالری را به درستی وارد کنید");
+      return;
+    }
+    if (!proteinPerUnit || isNaN(proteinPerUnit) || proteinPerUnit < 0) {
+      alert("لطفا مقدار پروتئین را به درستی وارد کنید");
       return;
     }
     if (!quantity || isNaN(quantity) || quantity <= 0) {
@@ -204,6 +218,7 @@ function DayDetails() {
         quantity: Number(quantity),
         unitType,
         caloriesPerUnit: Number(caloriesPerUnit),
+        proteinPerUnit: Number(proteinPerUnit),
       },
     ];
 
@@ -338,6 +353,7 @@ function DayDetails() {
               setUnitType("weight");
               setQuantity(100);
               setCaloriesPerUnit("");
+              setProteinPerUnit("");
             }}
           >
             وزنی (گرم)
@@ -352,6 +368,7 @@ function DayDetails() {
               setUnitType("count");
               setQuantity(1);
               setCaloriesPerUnit("");
+              setProteinPerUnit("");
             }}
           >
             تعدادی
@@ -380,10 +397,31 @@ function DayDetails() {
           className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         />
 
+        {/* فیلد پروتئین اضافه شده */}
+        <input
+          type="number"
+          min={0}
+          value={proteinPerUnit}
+          onChange={(e) => setProteinPerUnit(e.target.value)}
+          placeholder={
+            unitType === "weight"
+              ? "پروتئین هر 100 گرم (مثلاً 10)"
+              : "پروتئین هر عدد (مثلاً 2)"
+          }
+          className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        />
+
         <input
           type="text"
           readOnly
           value={`کالری کل: ${totalCalories()}`}
+          className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 mb-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-semibold"
+        />
+
+        <input
+          type="text"
+          readOnly
+          value={`پروتئین کل: ${totalProtein()}`}
           className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 mb-6 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-semibold"
         />
 

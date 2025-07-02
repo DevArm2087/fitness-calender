@@ -132,6 +132,12 @@ function PlanList() {
                       ? ((food.caloriesPerUnit * food.quantity) / 100).toFixed(0)
                       : (food.caloriesPerUnit * food.quantity).toFixed(0)}
                   </span>
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">
+                    پروتئین کل:{" "}
+                    {food.unitType === "weight"
+                      ? ((food.proteinPerUnit * food.quantity) / 100).toFixed(1)
+                      : (food.proteinPerUnit * food.quantity).toFixed(1)}
+                  </span>
                 </div>
                 <div className="flex gap-3 mt-3 sm:mt-0">
                   <button

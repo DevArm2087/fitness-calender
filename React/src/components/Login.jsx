@@ -16,11 +16,11 @@ export default function Login({ onLogin }) {
     try {
 
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login/`, {
+
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
         });
-
 
 
 
