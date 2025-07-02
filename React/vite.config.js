@@ -7,30 +7,27 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'robots.txt'],
       manifest: {
-        name: 'FitCalender 1404 App',
-        short_name: 'FitCalender',
-        description: 'اپلیکیشن تقویم فیتنس آفلاین',
-        theme_color: '#000000',
-        background_color: '#ffffff',
-        display: 'standalone',
+        name: 'Fitness Calendar',
+        short_name: 'FitCal',
         start_url: '/',
+        display: 'standalone',
+        background_color: '#ffffff',
+        theme_color: '#317EFB',
         icons: [
           {
-            src: 'icon.png',
+            src: '/icon.png',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/png'
           },
           {
-            src: 'icon.png',
+            src: '/icon.png',
             sizes: '512x512',
-            type: 'image/png',
-          },
-        ],
-      },
-      workbox: {
-        // میتونی تنظیمات کش پیشرفته اینجا اضافه کنی
-      },
-    }),
-  ],
+            type: 'image/png'
+          }
+        ]
+      }
+    })
+  ]
 });
