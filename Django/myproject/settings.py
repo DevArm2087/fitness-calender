@@ -129,9 +129,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "https://fitness-calender.onrender.com",  # ← آدرس فرانت‌اند در Render
+    "https://fitness-calender.onrender.com",  # آدرس فرانت آنلاین
+    "http://localhost:5173",                   # آدرس تست محلی فرانت
 ]
+
 
 from datetime import timedelta
 
