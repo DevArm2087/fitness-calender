@@ -24,6 +24,7 @@ export default function Register() {
 
 
 
+
       if (response.ok) {
         setMessage("ثبت‌نام با موفقیت انجام شد. اکنون وارد شوید.");
         setFormData({ username: "", phone: "", password: "", password2: "" });

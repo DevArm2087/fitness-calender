@@ -1,18 +1,13 @@
 from pathlib import Path
 from datetime import timedelta
-from corsheaders.defaults import default_headers
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-j2gdy!_(cz9(d*#)heobdx@s7wvd(!!h5awsgmr9r5*h*@7n^*'
+SECRET_KEY = 'your-secret-key-here'  # کلید خودتو بذار اینجا
 
-DEBUG = True
+DEBUG = False  # یا True فقط در توسعه، در حالت آنلاین False بذار
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "fitness-calender-backend.onrender.com",
-]
+ALLOWED_HOSTS = ['fitness-calender-backend.onrender.com', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -21,17 +16,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    'corsheaders',  # اضافه کردن corsheaders
+    'corsheaders',            # مهم برای CORS
     'rest_framework',
     'accounts',
     'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # حتماً باید بالاترین باشد
+    'corsheaders.middleware.CorsMiddleware',  # حتما باید بالاتر از بقیه باشه
     'django.middleware.common.CommonMiddleware',
-
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -82,23 +75,13 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-# پیکربندی CORS
-
+# تنظیمات CORS
 CORS_ALLOWED_ORIGINS = [
-    "https://fitness-calender.onrender.com",
-    "http://localhost:5173",
+    "https://fitness-calender.onrender.com",  # آدرس فرانت آنلاین تو Render
+    "http://localhost:5173",                   # آدرس فرانت محلی تو (Vite)
 ]
 
-CORS_ALLOW_CREDENTIALS = True
-
-CORS_ALLOW_HEADERS = list(default_headers) + [
-    'content-type',
-    'authorization',
-]
-
-# پیکربندی DRF و JWT
-
+# تنظیمات DRF و JWT
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
